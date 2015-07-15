@@ -4,7 +4,7 @@ using UnityStandardAssets.CrossPlatformInput;
 
 namespace UnityStandardAssets.Characters.FirstPerson
 {
-    [RequireComponent(typeof(Rigidbody))]
+ //   [RequireComponent(typeof(Rigidbody))]
     [RequireComponent(typeof(CapsuleCollider))]
     public class RigidbodyFirstPersonController : MonoBehaviour
     {
@@ -140,19 +140,23 @@ namespace UnityStandardAssets.Characters.FirstPerson
             {
                 m_Jump = true;
             }
+            
             if (CrossPlatformInputManager.GetButtonDown("ShiftSides"))
             {
                 shiftSides(CrossPlatformInputManager.GetAxis("ShiftSides"));
+           //     transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(0, 0, 90), 0.1f);
+                transform.rotation = Quaternion.Euler(0, 0, 90f);
             }
+            
             if (CrossPlatformInputManager.GetButtonDown("Invert"))
             {
                 invertGrav();
             }
+            
             if (CrossPlatformInputManager.GetButtonDown("ShiftForward"))
             {
                 shiftForward(CrossPlatformInputManager.GetAxis("ShiftForward"));
             }
-
 
         }
 
@@ -345,6 +349,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
                     RotationType grav = (RotationType)hits[i].transform.gameObject.GetComponent("RotationType");
                     newGrav = grav.getRotationType();
                     Debug.Log(hits[i].transform.name);
+                    Debug.DrawLine(transform.position, hits[i].point);
                     break;
                 }
             }
