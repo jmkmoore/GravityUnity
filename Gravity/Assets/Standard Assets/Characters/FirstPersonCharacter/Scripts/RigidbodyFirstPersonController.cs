@@ -83,7 +83,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         public ConstantForce myConstantForce;
 
-
+        private string myGrav = "-y";
         private Rigidbody m_RigidBody;
         private CapsuleCollider m_Capsule;
         private float m_YRotation;
@@ -140,6 +140,19 @@ namespace UnityStandardAssets.Characters.FirstPerson
             {
                 m_Jump = true;
             }
+            if (CrossPlatformInputManager.GetButtonDown("ShiftSides"))
+            {
+                shiftSides(CrossPlatformInputManager.GetAxis("ShiftSides"));
+            }
+            if (CrossPlatformInputManager.GetButtonDown("Invert"))
+            {
+                invertGrav();
+            }
+            if (CrossPlatformInputManager.GetButtonDown("ShiftForward"))
+            {
+                shiftForward(CrossPlatformInputManager.GetAxis("ShiftForward"));
+            }
+
 
         }
 
@@ -148,7 +161,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
         {
             GroundCheck();
             Vector2 input = GetInput();
-            checkGravity();
 
             if ((Mathf.Abs(input.x) > float.Epsilon || Mathf.Abs(input.y) > float.Epsilon) && (advancedSettings.airControl || m_IsGrounded))
             {
@@ -267,41 +279,103 @@ namespace UnityStandardAssets.Characters.FirstPerson
                     m_GroundContactNormal = Vector3.up;
                 }
             }
-            else if (y)
-            {
-                if (Physics.SphereCast(transform.position + new Vector3(0, m_Capsule.height, 0), m_Capsule.radius, Vector3.down, out hitInfo,
-                                          ((m_Capsule.height) / 2f - m_Capsule.radius) + advancedSettings.groundCheckDistance))
-                {
-                    m_IsGrounded = true;
-                    m_GroundContactNormal = hitInfo.normal;
-                }
-                else
-                {
-                    m_IsGrounded = false;
-                    m_GroundContactNormal = Vector3.down;
-                }
-
-            }
             if (!m_PreviouslyGrounded && m_IsGrounded && m_Jumping)
             {
                 m_Jumping = false;
             }
         }
-        void checkGravity()
+        void invertGrav()
         {
-            if (CrossPlatformInputManager.GetButtonDown("Invert"))
+            switch (myGrav)
             {
-                myConstantForce.force = new Vector3(myConstantForce.force.x * -1f, myConstantForce.force.y + (2 * 98f) * transform.localScale.y, myConstantForce.force.z * -1f);
-                transform.localScale = new Vector3(transform.localScale.x, -transform.localScale.y, transform.localScale.z);
-                m_IsGrounded = false;
-                y = !y;
-                x1 = !x1;
-                x2 = !x2;
+                case "x":
+                    shiftGravity("-x");
+                    break;
+                case "-x":
+                    shiftGravity("x");
+                    break;
+                case "-y":
+                    shiftGravity("y");
+                    break;
+                case "y":
+                    shiftGravity("-y");
+                    break;
+                case "-z":
+                    shiftGravity("z");
+                    break;
+                case "z":
+                    shiftGravity("-z");
+                    break;
+                default:
+                    shiftGravity("-y");
+                    break;
             }
-            if (CrossPlatformInputManager.GetButtonDown("ShiftSides"))
+        }
+
+        void shiftForward(float axis)
+        {
+            String newGrav = "";
+            Debug.Log(axis * transform.right);
+            RaycastHit[] hits = Physics.RaycastAll(transform.position, axis * transform.forward);
+            for (int i = 0; i < hits.Length; i++)
             {
-                myConstantForce.force = new Vector3(myConstantForce.force.x + 98f * CrossPlatformInputManager.GetAxis("ShiftSides"), 0, 0);
-                transform.rotation = Quaternion.Lerp(transform.localRotation, new Quaternion(0f, 0f, 0f, 90f * CrossPlatformInputManager.GetAxis("ShiftSides")), Time.deltaTime);
+                if (hits[i].transform.tag.Equals("GravityLayer"))
+                {
+                    //m_RigidBody.freezeRotation = false;
+                    RotationType grav = (RotationType)hits[i].transform.gameObject.GetComponent("RotationType");
+                    newGrav = grav.getRotationType();
+                    Debug.Log(hits[i].transform.name);
+                    break;
+                }
+            }
+            shiftGravity(newGrav);
+
+        }
+        
+        void shiftSides(float axis)
+        {
+            String newGrav = "";
+            Debug.Log(axis * transform.right);
+            RaycastHit[] hits = Physics.RaycastAll(transform.position, axis * transform.right);
+            for (int i = 0; i < hits.Length; i++)
+            {
+                if (hits[i].transform.tag.Equals("GravityLayer"))
+                {
+                    //m_RigidBody.freezeRotation = false;
+                    RotationType grav = (RotationType)hits[i].transform.gameObject.GetComponent("RotationType");
+                    newGrav = grav.getRotationType();
+                    Debug.Log(hits[i].transform.name);
+                    break;
+                }
+            }
+            shiftGravity(newGrav);
+        }
+
+        void shiftGravity(string newGrav){
+            myGrav = newGrav;
+            switch (newGrav)
+            {
+                case "-x":
+                    myConstantForce.force = new Vector3(-98f, 0f, 0f);
+                    break;
+                case "x":
+                    myConstantForce.force = new Vector3(98f, 0f, 0f);
+                    break;
+                case "-y":
+                    myConstantForce.force = new Vector3(0f, -98f, 0f);
+                    break;
+                case "y":
+                    myConstantForce.force = new Vector3(0f, 98f, 0f);
+                    break;
+                case "-z":
+                    myConstantForce.force = new Vector3(0f, 0f, -98f);
+                    break;
+                case "z":
+                    myConstantForce.force = new Vector3(0f, 0f, 98f);
+                    break;
+                default:
+                    myConstantForce.force = new Vector3(0f, -98f, 0f);
+                    break;
             }
         }
     }
