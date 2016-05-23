@@ -92,7 +92,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         private RigidbodyConstraints myConstraints;
 
-        private Vector3 myDown;
         private bool y, x1, x2;
 
         public Vector3 Velocity
@@ -145,7 +144,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
             {
                 shiftSides(CrossPlatformInputManager.GetAxis("ShiftSides"));
            //     transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(0, 0, 90), 0.1f);
-                transform.rotation = Quaternion.Euler(0, 0, 90f);
+                transform.rotation = Quaternion.Euler(0, 0, CrossPlatformInputManager.GetAxis("ShiftSides") * 90f);
             }
             
             if (CrossPlatformInputManager.GetButtonDown("Invert"))
@@ -221,7 +220,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
         private void StickToGroundHelper()
         {
             RaycastHit hitInfo;
-            if (Physics.SphereCast(transform.position, m_Capsule.radius, Vector3.down, out hitInfo,
+            if (Physics.SphereCast(transform.position, m_Capsule.radius, -transform.up, out hitInfo,
                                    ((m_Capsule.height / 2f) - m_Capsule.radius) +
                                    advancedSettings.stickToGroundHelperDistance))
             {
@@ -254,7 +253,7 @@ namespace UnityStandardAssets.Characters.FirstPerson
             // get the rotation before it's changed
             float oldYRotation = transform.eulerAngles.y;
 
-            mouseLook.LookRotation(transform, cam.transform);
+            mouseLook.LookRotation(transform, cam.transform, myGrav);
 
             if (m_IsGrounded || advancedSettings.airControl)
             {
